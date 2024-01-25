@@ -157,7 +157,7 @@ impl<T: ShipData> Ship<T> {
         }
     }
 
-    fn build_bundle(&self, metal: &Res<Metal>) -> PbrBundle {
+    fn build_bundle(&self, metal: &Res<Metal<Iron>>) -> PbrBundle {
         PbrBundle {
             mesh: self.mesh.clone(),
             material: metal.material.clone(),
@@ -167,9 +167,35 @@ impl<T: ShipData> Ship<T> {
     }
 }
 
+trait MetalData {
+    fn new() -> Self where Self: Sized;
+    fn color(&self) -> Color;
+}
+
+struct Iron { color: Color }
+
+impl MetalData for Iron {
+    fn new() -> Self { Iron { color: Color::DARK_GRAY } }
+    fn color(&self) -> Color { self.color }
+}
+
 #[derive(Resource)]
-struct Metal {
+struct Metal<T: MetalData> {
     material: Handle<StandardMaterial>,
+    _data: T,
+}
+
+impl<T: MetalData> Metal<T> {
+    fn new(materials: &mut ResMut<Assets<StandardMaterial>>) -> Self {
+        let data = T::new();
+        let metal = StandardMaterial::from(data.color());
+        let material = materials.add(metal);
+        Metal {
+            material,
+            _data: data,
+        }
+    }
+
 }
 
 fn load_assets(
@@ -185,10 +211,7 @@ fn load_assets(
     com.insert_resource(Ship::<Freighter>::new(&mut meshes));
     com.insert_resource(Ship::<ContainerShip>::new(&mut meshes));
 
-    let metal = StandardMaterial::from(Color::DARK_GRAY);
-    com.insert_resource(Metal {
-        material: materials.add(metal),
-    });
+    com.insert_resource(Metal::<Iron>::new(&mut materials));
 }
 
 #[derive(Component)]
@@ -197,7 +220,7 @@ pub struct SpawnExample;
 fn _spawn_example(
     mut com: Commands,
     ship: Res<Ship<Freighter>>,
-    metal: Res<Metal>,
+    metal: Res<Metal<Iron>>,
     q: Query<Entity, With<SpawnExample>>,
 ) {
     for parent in q.iter() {
@@ -213,7 +236,7 @@ macro_rules! create_spawn_function {
         fn $func_name(
             mut com: Commands,
             ship: Res<$ship_type>,
-            metal: Res<Metal>,
+            metal: Res<Metal<Iron>>,
             q: Query<Entity, With<$spawn_tag>>,
         ) {
             for parent in q.iter() {
