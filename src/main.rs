@@ -3,6 +3,7 @@ use bevy_panorbit_camera;
 
 mod environment;
 mod ship;
+mod mesh;
 
 // s: 1x1x1
 // m: 3x3x3
