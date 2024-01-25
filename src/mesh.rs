@@ -7,6 +7,49 @@ struct Vertex {
     normal: Vec3,
 }
 
+struct Rect {
+    vertices: Vec<Vertex>,
+    indices: Vec<u32>,
+}
+
+impl Rect {
+    fn new(origin: Vec3, normal: Vec3, height: f32, width: f32, offset: f32) -> Self {
+            
+            if normal == Vec3::ZERO {
+                panic!("Cannot find perpendicular vectors for a zero vector");
+            }
+        
+            // Choose an arbitrary vector that is not parallel to 'v'.
+            // For example, if 'v' is not parallel to the x-axis, use Vec3::X.
+            let arbitrary_vector = if normal.x.abs() > 0.1 { Vec3::Y } else { Vec3::X };
+        
+            // First perpendicular vector
+            let mut perp_1 = normal.cross(arbitrary_vector).normalize();
+        
+            // Second perpendicular vector
+            let mut perp_2 = normal.cross(perp_1).normalize();
+    
+            perp_1 *= width*0.5 - offset*0.5;
+            perp_2 *= height*0.5 - offset*0.5;
+    
+            let vertices = vec![
+                Vertex { position: origin + (-perp_1) + (-perp_2), normal, },
+                Vertex { position: origin + (perp_1) + (-perp_2), normal, },
+                Vertex { position: origin + (perp_1) + (perp_2), normal, },
+                Vertex { position: origin + (-perp_1) + (perp_2), normal, },
+            ];
+    
+            let indices: Vec<u32> = vec![
+                0, 1, 2, 2, 3, 0,
+            ];
+    
+            Rect {
+                vertices,
+                indices,
+            }
+    }
+}
+
 struct Square {
     vertices: Vec<Vertex>,
     indices: Vec<u32>,
@@ -15,37 +58,11 @@ struct Square {
 impl Square {
     fn new(origin: Vec3, normal: Vec3, offset: f32) -> Self {
 
-        if normal == Vec3::ZERO {
-            panic!("Cannot find perpendicular vectors for a zero vector");
-        }
-    
-        // Choose an arbitrary vector that is not parallel to 'v'.
-        // For example, if 'v' is not parallel to the x-axis, use Vec3::X.
-        let arbitrary_vector = if normal.x.abs() > 0.1 { Vec3::Y } else { Vec3::X };
-    
-        // First perpendicular vector
-        let mut perp_1 = normal.cross(arbitrary_vector).normalize();
-    
-        // Second perpendicular vector
-        let mut perp_2 = normal.cross(perp_1).normalize();
-
-        perp_1 *= 0.5 - offset*0.5;
-        perp_2 *= 0.5 - offset*0.5;
-
-        let vertices = vec![
-            Vertex { position: origin + (-perp_1) + (-perp_2), normal, },
-            Vertex { position: origin + (perp_1) + (-perp_2), normal, },
-            Vertex { position: origin + (perp_1) + (perp_2), normal, },
-            Vertex { position: origin + (-perp_1) + (perp_2), normal, },
-        ];
-
-        let indices: Vec<u32> = vec![
-            0, 1, 2, 2, 3, 0,
-        ];
+        let rect = Rect::new(origin, normal, 1.0, 1.0, offset);
 
         Square {
-            vertices,
-            indices,
+            vertices: rect.vertices,
+            indices: rect.indices,
         }
     }
 }

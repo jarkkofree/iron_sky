@@ -9,9 +9,6 @@ mod mesh;
 // m: 3x3x3
 // l: 9x9x9
 
-
-
-
 // ship generator, backbone, rib for 2-wide, bridge, engine on mech block
 // passenger ship, single block/no gaps, forward bridge
 // mining ship, like cargo ship but first block is a drill
