@@ -44,7 +44,73 @@ fn startup(
     mut com: Commands,
 ) {
     com.spawn((
-        PbrBundle { ..default() },
-        ship::SpawnShip
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(0.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnCourier
     ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(5.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnLightTransport
+    ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(10.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnTransport
+    ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(15.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnBarge
+    ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(20.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnHeavyTransport
+    ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(25.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnFreighter
+    ));
+
+    com.spawn((
+        PbrBundle {
+            transform: Transform::from_translation(
+                Vec3::new(30.0, 0.0, 0.0)
+            ),
+            ..default()
+        },
+        ship::SpawnContainerShip
+    ));
+
 }
