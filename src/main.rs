@@ -48,7 +48,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnCourier
+        ship::cargo::SpawnCourier
     ));
 
     com.spawn((
@@ -58,7 +58,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnLightTransport
+        ship::cargo::SpawnLightTransport
     ));
 
     com.spawn((
@@ -68,7 +68,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnTransport
+        ship::cargo::SpawnTransport
     ));
 
     com.spawn((
@@ -78,7 +78,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnBarge
+        ship::cargo::SpawnBarge
     ));
 
     com.spawn((
@@ -88,7 +88,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnHeavyTransport
+        ship::cargo::SpawnHeavyTransport
     ));
 
     com.spawn((
@@ -98,7 +98,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnFreighter
+        ship::cargo::SpawnFreighter
     ));
 
     com.spawn((
@@ -108,7 +108,7 @@ fn startup(
             ),
             ..default()
         },
-        ship::SpawnContainerShip
+        ship::cargo::SpawnContainerShip
     ));
 
 }

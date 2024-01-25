@@ -56,14 +56,37 @@ struct Square {
 }
 
 impl Square {
-    fn new(origin: Vec3, normal: Vec3, offset: f32) -> Self {
+    fn new(origin: Vec3, normal: Vec3, size: f32, offset: f32) -> Self {
 
-        let rect = Rect::new(origin, normal, 1.0, 1.0, offset);
+        let rect = Rect::new(origin, normal, size, size, offset);
 
         Square {
             vertices: rect.vertices,
             indices: rect.indices,
         }
+    }
+}
+
+struct Box {
+    sides: Vec<Square>,
+}
+
+impl Box {
+    fn new(origin: Vec3, length: f32, width: f32, height: f32, offset: f32) -> Self {
+        let mut sides = vec![];
+        for side_offset in vec![
+            Vec3::X * (width - offset),
+            Vec3::Y * (height - offset),
+            Vec3::Z * (length - offset),
+        ] {
+            sides.push(Square::new(origin + side_offset*0.5, side_offset.normalize(), 1.0, offset));
+            sides.push(Square::new(origin - side_offset*0.5, -side_offset.normalize(), 1.0, offset));
+        }
+
+        Box {
+            sides,
+        }
+    
     }
 }
 
@@ -73,20 +96,10 @@ struct Cube {
 
 impl Cube {
     fn new(origin: Vec3, offset: f32) -> Self {
-        let mut sides = vec![];
-        for normal in vec![
-            Vec3::X,
-            Vec3::Y,
-            Vec3::Z,
-            -Vec3::X,
-            -Vec3::Y,
-            -Vec3::Z,
-        ] {
-            sides.push(Square::new(origin + (normal * (0.5 - offset*0.5)), normal, offset));
-        }
+        let box_shape = Box::new(origin, 1.0, 1.0, 1.0, offset);
 
         Cube {
-            sides,
+            sides: box_shape.sides,
         }
     
     }
