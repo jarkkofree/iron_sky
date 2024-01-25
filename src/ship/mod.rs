@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use crate::mesh;
 
 pub mod cargo;
+pub mod passenger;
 
 pub struct ShipPlugin;
 

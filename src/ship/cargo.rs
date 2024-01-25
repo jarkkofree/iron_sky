@@ -7,7 +7,7 @@ pub struct SpawnCourier;
 
 pub struct Courier { length: i32, width: i32, height: i32, hull_type: HullType, }
 
-impl super::ShipData for Courier {
+impl ShipData for Courier {
     fn new() -> Self {
         Courier { length: 2, width: 1, height: 1, hull_type: HullType::Cargo, }
     }
