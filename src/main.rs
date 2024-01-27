@@ -55,7 +55,7 @@ fn startup(
     com.spawn((
         asteroid::Spawn,
         PbrBundle {
-            transform: Transform::from_translation(Vec3::new(-5.0, 0.0, -5.0)),
+            transform: Transform::from_translation(Vec3::new(-10.0, 0.0, -10.0)),
             ..default()
         }
     ));

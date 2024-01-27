@@ -1,4 +1,5 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
+use rand::prelude::*;
 
 pub struct AsteroidPlugin;
 
@@ -59,6 +60,33 @@ fn load(
     com.insert_resource(Ore::new(&mut materials));
 }
 
+struct AsteroidBelt {
+    asteroids: Vec<Transform>,
+}
+
+impl AsteroidBelt {
+    fn new() -> Self {
+
+        let mut rng = rand::thread_rng();
+        let position_range = -10..10;
+        let asteroid_count = 10;
+
+        let mut asteroids = Vec::new();
+        for _ in 0..asteroid_count {
+            let x = rng.gen_range(position_range.clone());
+            let y = rng.gen_range(position_range.clone());
+            let z = rng.gen_range(position_range.clone());
+            let translation = Vec3::new(x as f32, y as f32, z as f32);
+            let transform = Transform::from_translation(translation);
+            asteroids.push(transform);
+        }
+
+        Self {
+            asteroids,
+        }
+    }
+}
+
 #[derive(Component)]
 pub struct Spawn;
 
@@ -69,15 +97,20 @@ fn spawn(
     ore: Res<Ore>,
 ) {
     for parent in q.iter() {
-        let ore_asteroid = PbrBundle {
-            mesh: asteroid.mesh.clone(),
-            material: ore.material.clone(),
-            transform: Transform::from_translation(Vec3::ZERO),
-            ..default()
-        };
-        let components = [ore_asteroid];
-        for component in components.iter() {
-            let child = com.spawn(component.clone()).id();
+        let asteroid_belt = AsteroidBelt::new();
+        let mut asteroids = vec![];
+        for transform in asteroid_belt.asteroids.iter() {
+            let asteroid = PbrBundle {
+                mesh: asteroid.mesh.clone(),
+                material: ore.material.clone(),
+                transform: transform.clone(),
+                ..default()
+            };
+            asteroids.push(asteroid);
+        }
+
+        for each in asteroids.iter() {
+            let child = com.spawn(each.clone()).id();
             com.entity(parent).push_children(&[child]);
         }
         com.entity(parent).remove::<Spawn>();
