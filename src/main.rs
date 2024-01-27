@@ -3,13 +3,16 @@ use bevy_panorbit_camera;
 
 mod environment;
 mod ship;
+mod asteroid;
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            environment::EnvironmentPlugin,
             bevy_panorbit_camera::PanOrbitCameraPlugin,
+            environment::EnvironmentPlugin,
+            ship::ShipPlugin,
+            asteroid::AsteroidPlugin,
         ))
         .add_systems(Startup, (
             startup,
@@ -48,10 +51,18 @@ fn startup(
             ..default()
         }
     ));
+
+    com.spawn((
+        asteroid::Spawn,
+        PbrBundle {
+            transform: Transform::from_translation(Vec3::new(-5.0, 0.0, -5.0)),
+            ..default()
+        }
+    ));
 }
 
 fn update(
-    mut com: Commands,
+    mut _com: Commands,
 ) {
 
 }

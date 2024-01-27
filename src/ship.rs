@@ -82,6 +82,8 @@ impl Iron {
         let base_color = Color::GRAY;
         let material = StandardMaterial {
             base_color,
+            perceptual_roughness: 0.8,
+            metallic: 1.0,
             ..default()
         };
         Self {
@@ -100,6 +102,8 @@ impl Steel {
         let base_color = Color::SILVER;
         let material = StandardMaterial {
             base_color,
+            perceptual_roughness: 0.6,
+            metallic: 1.0,
             ..default()
         };
         Self {
