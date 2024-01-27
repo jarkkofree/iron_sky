@@ -170,19 +170,19 @@ fn spawn(
         let mining_drill = PbrBundle {
             mesh: mining_drill.mesh.clone(),
             material: steel.material.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0)),
             ..default()
         };
         let solids_bay = PbrBundle {
             mesh: solids_bay.mesh.clone(),
             material: iron.material.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -1.0)),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
             ..default()
         };
         let engine = PbrBundle {
             mesh: engine.mesh.clone(),
             material: plasma.material.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, -2.0)),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 2.0)),
             ..default()
         };
         let components = [cockpit, mining_drill, solids_bay, engine];
