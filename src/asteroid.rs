@@ -98,7 +98,6 @@ fn spawn(
 ) {
     for parent in q.iter() {
         let asteroid_belt = AsteroidBelt::new();
-        let mut asteroids = vec![];
         for transform in asteroid_belt.asteroids.iter() {
             let asteroid = PbrBundle {
                 mesh: asteroid.mesh.clone(),
@@ -106,11 +105,7 @@ fn spawn(
                 transform: transform.clone(),
                 ..default()
             };
-            asteroids.push(asteroid);
-        }
-
-        for each in asteroids.iter() {
-            let child = com.spawn(each.clone()).id();
+            let child = com.spawn(asteroid).id();
             com.entity(parent).push_children(&[child]);
         }
         com.entity(parent).remove::<Spawn>();
