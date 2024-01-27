@@ -13,7 +13,7 @@ impl Plugin for ShipPlugin {
 }
 
 
-trait MeshData {
+trait ModuleMeshData {
     fn cube_size() -> f32;
 }
 
@@ -23,7 +23,7 @@ struct ShipModule<T> {
     phantom: std::marker::PhantomData<T>,
 }
 
-impl<T: MeshData> ShipModule<T> {
+impl<T: ModuleMeshData> ShipModule<T> {
     fn new(meshes: &mut ResMut<Assets<Mesh>>) -> Self {
         let shape = shape::Cube::new(T::cube_size());
         let mesh = Mesh::from(shape);
@@ -34,78 +34,89 @@ impl<T: MeshData> ShipModule<T> {
     }
 }
 
-#[derive(Resource)]
 struct Cockpit;
-impl MeshData for Cockpit { fn cube_size() -> f32 { 0.8 } }
+impl ModuleMeshData for Cockpit { fn cube_size() -> f32 { 0.8 } }
 
-#[derive(Resource)]
 struct SolidsBay;
-impl MeshData for SolidsBay { fn cube_size() -> f32 { 1.0 } }
+impl ModuleMeshData for SolidsBay { fn cube_size() -> f32 { 1.0 } }
 
-#[derive(Resource)]
 struct Engine;
-impl MeshData for Engine { fn cube_size() -> f32 { 0.6 } }
+impl ModuleMeshData for Engine { fn cube_size() -> f32 { 0.6 } }
 
-#[derive(Resource)]
 struct MiningDrill;
-impl MeshData for MiningDrill { fn cube_size() -> f32 { 0.4 } }
+impl ModuleMeshData for MiningDrill { fn cube_size() -> f32 { 0.4 } }
 
-#[derive(Resource)]
-struct Iron {
-    material: Handle<StandardMaterial>,
+
+enum ModuleMaterialType {
+    Metal {
+        color: Color,
+        roughness: f32,
+    },
+    Plasma {
+        color: Color,
+    },
 }
 
-impl Iron {
+trait ModuleMaterialData {
+    fn material() -> ModuleMaterialType;
+}
+
+#[derive(Resource)]
+struct ModuleMaterial<T> {
+    material: Handle<StandardMaterial>,
+    phantom: std::marker::PhantomData<T>,
+}
+
+impl<T: ModuleMaterialData> ModuleMaterial<T> {
     fn new(materials: &mut ResMut<Assets<StandardMaterial>>) -> Self {
-        let base_color = Color::GRAY;
-        let material = StandardMaterial {
-            base_color,
-            perceptual_roughness: 0.8,
-            metallic: 1.0,
-            ..default()
-        };
+        let data = T::material();
+        let material;
+        match data {
+            ModuleMaterialType::Metal { color, roughness } => {
+                material = StandardMaterial {
+                    base_color: color,
+                    perceptual_roughness: roughness,
+                    metallic: 1.0,
+                    ..default()
+                };
+
+            },
+            ModuleMaterialType::Plasma { color } => {
+                material = StandardMaterial {
+                    base_color: Color::BLACK,
+                    emissive: color,
+                    ..default()
+                };
+            },
+        }
         Self {
             material: materials.add(material),
+            phantom: std::marker::PhantomData,
         }
     }
 }
 
-#[derive(Resource)]
-struct Steel {
-    material: Handle<StandardMaterial>,
-}
+struct Iron;
 
-impl Steel {
-    fn new(materials: &mut ResMut<Assets<StandardMaterial>>) -> Self {
-        let base_color = Color::SILVER;
-        let material = StandardMaterial {
-            base_color,
-            perceptual_roughness: 0.6,
-            metallic: 1.0,
-            ..default()
-        };
-        Self {
-            material: materials.add(material),
-        }
+impl ModuleMaterialData for Iron {
+    fn material() -> ModuleMaterialType {
+        ModuleMaterialType::Metal { color: Color::GRAY, roughness: 0.8, }
     }
 }
 
-#[derive(Resource)]
-struct Plasma {
-    material: Handle<StandardMaterial>,
+struct Steel;
+
+impl ModuleMaterialData for Steel {
+    fn material() -> ModuleMaterialType {
+        ModuleMaterialType::Metal { color: Color::SILVER, roughness: 0.6, }
+    }
 }
 
-impl Plasma {
-    fn new(materials: &mut ResMut<Assets<StandardMaterial>>) -> Self {
-        let emissive = Color::RED;
-        let material = StandardMaterial {
-            base_color: Color::BLACK,
-            emissive,
-            ..default()
-        };
-        Self {
-            material: materials.add(material),
-        }
+struct Plasma;
+
+impl ModuleMaterialData for Plasma {
+    fn material() -> ModuleMaterialType {
+        ModuleMaterialType::Plasma { color: Color::RED, }
     }
 }
 
@@ -119,9 +130,9 @@ fn load(
     com.insert_resource(ShipModule::<Engine>::new(&mut meshes));
     com.insert_resource(ShipModule::<MiningDrill>::new(&mut meshes));
 
-    com.insert_resource(Iron::new(&mut materials));
-    com.insert_resource(Steel::new(&mut materials));
-    com.insert_resource(Plasma::new(&mut materials));
+    com.insert_resource(ModuleMaterial::<Iron>::new(&mut materials));
+    com.insert_resource(ModuleMaterial::<Steel>::new(&mut materials));
+    com.insert_resource(ModuleMaterial::<Plasma>::new(&mut materials));
 }
 
 #[derive(Component)]
@@ -134,9 +145,9 @@ fn spawn(
     mining_drill: Res<ShipModule<MiningDrill>>,
     solids_bay: Res<ShipModule<SolidsBay>>,
     engine: Res<ShipModule<Engine>>,
-    iron: Res<Iron>,
-    steel: Res<Steel>,
-    plasma: Res<Plasma>,
+    iron: Res<ModuleMaterial<Iron>>,
+    steel: Res<ModuleMaterial<Steel>>,
+    plasma: Res<ModuleMaterial<Plasma>>,
 ) {
     for parent in q.iter() {
         let cockpit = PbrBundle {
