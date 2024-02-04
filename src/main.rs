@@ -162,17 +162,16 @@ fn run_new_test(
 use bevy::tasks::IoTaskPool;
 use std::{fs::File, io::Write};
 fn save_test(
-    world: &World,
+    world: &mut World,
 ) {
+    let mut query = world.query_filtered::<Entity, With<Transform>>();
+
     let scene = DynamicSceneBuilder::from_world(world)
         .allow::<Cube>()
-        .allow::<Handle<Mesh>>()
-        .allow::<Handle<StandardMaterial>>()
+        .allow::<Camera>()
+        .allow::<Light>()
         .allow::<Transform>()
-        .allow::<GlobalTransform>()
-        .allow::<Visibility>()
-        .allow::<InheritedVisibility>()
-        .allow::<ViewVisibility>()
+        .extract_entities(query.iter(&world))
         .build();
     let type_registry = world.resource::<AppTypeRegistry>();
     let serialized_scene = scene.serialize_ron(type_registry).unwrap();

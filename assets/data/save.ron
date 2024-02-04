@@ -1,4 +1,74 @@
 (
   resources: {},
-  entities: {},
+  entities: {
+    1: (
+      components: {
+        "bevy_transform::components::transform::Transform": (
+          translation: (
+            x: 10.000002,
+            y: 10.0,
+            z: 10.0,
+          ),
+          rotation: (
+            x: -0.27984813,
+            y: 0.36470523,
+            z: 0.1159169,
+            w: 0.88047624,
+          ),
+          scale: (
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+          ),
+        ),
+        "iron_sky::Camera": (),
+      },
+    ),
+    2: (
+      components: {
+        "bevy_transform::components::transform::Transform": (
+          translation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+          ),
+          rotation: (
+            x: -0.4247082,
+            y: 0.33985114,
+            z: 0.1759199,
+            w: 0.82047325,
+          ),
+          scale: (
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+          ),
+        ),
+        "iron_sky::Light": (),
+      },
+    ),
+    3: (
+      components: {
+        "bevy_transform::components::transform::Transform": (
+          translation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+          ),
+          rotation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0,
+          ),
+          scale: (
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+          ),
+        ),
+        "iron_sky::Cube": (),
+      },
+    ),
+  },
 )
