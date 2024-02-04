@@ -1,11 +1,12 @@
 use bevy::prelude::*;
+use crate::AppState;
 
 pub struct EnvironmentPlugin;
 
 impl Plugin for EnvironmentPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Startup, load_environment);
+            .add_systems(OnEnter(AppState::Play), load_environment);
     }
 }
 

@@ -1,13 +1,14 @@
 use bevy::prelude::*;
 use rand::prelude::*;
+use crate::AppState;
 
 pub struct AsteroidPlugin;
 
 impl Plugin for AsteroidPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Startup, load)
-            .add_systems(Update, (
+            .add_systems(OnEnter(AppState::Menu), load)
+            .add_systems(OnEnter(AppState::Play), (
                 spawn,
             ));
     }
