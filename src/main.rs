@@ -30,19 +30,17 @@ fn main() {
         .register_type::<Camera>()
         .register_type::<Light>()
         .register_type::<Cube>()
-        .register_type::<Aluminum>()
-        .register_type::<CubeMesh>()
 
         .add_systems(OnEnter(AppState::Load), (
             setup_test,
         ))
 
         .add_systems(OnEnter(AppState::Play), (
-            run_test,
+            run_new_test,
         ))
 
-        .add_systems(OnEnter(AppState::Pause), (
-            save_test,
+        .add_systems(Update, (
+            save_test.run_if(in_state(AppState::Pause)),
         ))
 
         .run();
@@ -60,14 +58,12 @@ struct Light;
 #[reflect(Component)]
 struct Cube;
 
-#[derive(Resource, Reflect, Default)]
-#[reflect(Resource)]
+#[derive(Resource)]
 struct Aluminum {
     handle: Handle<StandardMaterial>,
 }
 
-#[derive(Resource, Reflect, Default)]
-#[reflect(Resource)]
+#[derive(Resource)]
 struct CubeMesh {
     handle: Handle<Mesh>,
 }
@@ -111,7 +107,7 @@ fn setup_test (
     next_state.set(AppState::Play);
 }
 
-fn run_test(
+fn run_new_test(
     mut com: Commands,
     aluminum: Res<Aluminum>,
     cube_mesh: Res<CubeMesh>,
@@ -168,16 +164,25 @@ use std::{fs::File, io::Write};
 fn save_test(
     world: &World,
 ) {
-    let scene = DynamicScene::from_world(world);
+    let scene = DynamicSceneBuilder::from_world(world)
+        .allow::<Cube>()
+        .allow::<Handle<Mesh>>()
+        .allow::<Handle<StandardMaterial>>()
+        .allow::<Transform>()
+        .allow::<GlobalTransform>()
+        .allow::<Visibility>()
+        .allow::<InheritedVisibility>()
+        .allow::<ViewVisibility>()
+        .build();
     let type_registry = world.resource::<AppTypeRegistry>();
     let serialized_scene = scene.serialize_ron(type_registry).unwrap();
-    let filepath = String::from("assets/data/save.ron");
+    let filepath = String::from("save.ron");
 
     #[cfg(not(target_arch = "wasm32"))]
     IoTaskPool::get()
         .spawn(async move {
             // Write the scene RON data to file
-            File::create(format!("assets/{filepath}"))
+            File::create(format!("assets/data/{filepath}"))
                 .and_then(|mut file| file.write(serialized_scene.as_bytes()))
                 .expect("Error while writing scene to file");
         })
