@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_panorbit_camera::PanOrbitCameraPlugin;
 
-#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, States)]
 pub enum AppState {
     #[default]
     // Load game resources
@@ -30,6 +30,8 @@ fn main() {
         .register_type::<Camera>()
         .register_type::<Light>()
         .register_type::<Cube>()
+        .register_type::<CubeMesh>()
+        .register_type::<MetalMaterials>()
 
         .add_systems(OnEnter(AppState::Load), (
             setup_test,
@@ -54,18 +56,67 @@ struct Camera;
 #[reflect(Component)]
 struct Light;
 
+
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
+struct CubeMesh {
+    mesh: Mesh,
+    positions: Vec<[f32; 3]>,
+    normals: Vec<[f32; 3]>,
+}
+
+impl Default for CubeMesh {
+    fn default() -> Self {
+        let cube = shape::Cube::new(1.0);
+        let mesh = Mesh::from(cube);
+        let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap();
+        let normals = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap();
+        CubeMesh {
+            mesh: mesh.clone(),
+            positions: positions.as_float3().unwrap().to_vec(),
+            normals: normals.as_float3().unwrap().to_vec(),
+        }
+    }
+}
+
+#[derive(Resource)]
+struct CubeMeshHandle {
+    handle: Handle<Mesh>,
+}
+
 #[derive(Component, Reflect, Default)]
 #[reflect(Component)]
 struct Cube;
 
+
+
 #[derive(Resource)]
-struct Aluminum {
+struct AluminumHandle {
     handle: Handle<StandardMaterial>,
 }
 
-#[derive(Resource)]
-struct CubeMesh {
-    handle: Handle<Mesh>,
+#[derive(Resource, Reflect)]
+#[reflect(Resource)]
+struct MetalMaterials {
+    aluminum: StandardMaterial,
+}
+
+impl Default for MetalMaterials {
+    fn default() -> Self {
+        let metallic = StandardMaterial {
+            metallic: 1.0,
+            perceptual_roughness: 0.5,
+            ..default()
+        };
+        let aluminum_color = Color::hex("faf5f5").unwrap();
+        let aluminum_material = StandardMaterial {
+            base_color: aluminum_color,
+            ..metallic
+        };
+        MetalMaterials {
+            aluminum: aluminum_material,
+        }
+    }
 }
 
 fn setup_test (
@@ -81,26 +132,18 @@ fn setup_test (
     });
 
     // Materials
-    let metallic = StandardMaterial {
-        metallic: 1.0,
-        perceptual_roughness: 0.5,
-        ..default()
-    };
-    let aluminum_color = Color::hex("faf5f5").unwrap();
-    let aluminum = StandardMaterial {
-        base_color: aluminum_color,
-        ..metallic
-    };
-    let aluminum_handle = materials.add(aluminum);
-    com.insert_resource(Aluminum {
+    let metals = MetalMaterials::default();
+    let aluminum_handle = materials.add(metals.aluminum.clone());
+    com.insert_resource(AluminumHandle {
         handle: aluminum_handle.clone(),
     });
+    com.insert_resource(metals);
 
     // Meshes
-    let cube = shape::Cube::new(1.0);
-    let cube_mesh = Mesh::from(cube);
-    let cube_mesh_handle = meshes.add(cube_mesh);
-    com.insert_resource(CubeMesh {
+    let cube_mesh = CubeMesh::default();
+    let cube_mesh_handle = meshes.add(cube_mesh.mesh.clone());
+    com.insert_resource(cube_mesh);
+    com.insert_resource(CubeMeshHandle {
         handle: cube_mesh_handle.clone(),
     });
 
@@ -109,8 +152,8 @@ fn setup_test (
 
 fn run_new_test(
     mut com: Commands,
-    aluminum: Res<Aluminum>,
-    cube_mesh: Res<CubeMesh>,
+    aluminum: Res<AluminumHandle>,
+    cube_mesh: Res<CubeMeshHandle>,
     mut next_state: ResMut<NextState<AppState>>
 ) {
     // Camera
@@ -164,25 +207,45 @@ use std::{fs::File, io::Write};
 fn save_test(
     world: &mut World,
 ) {
-    let mut query = world.query_filtered::<Entity, With<Transform>>();
+    let mut entity_query = world.query_filtered::<Entity, With<Transform>>();
 
-    let scene = DynamicSceneBuilder::from_world(world)
+    let entities = DynamicSceneBuilder::from_world(world)
         .allow::<Cube>()
         .allow::<Camera>()
         .allow::<Light>()
         .allow::<Transform>()
-        .extract_entities(query.iter(&world))
+        .extract_entities(entity_query.iter(&world))
+        .build();
+    let resources = DynamicSceneBuilder::from_world(world)
+        .allow_resource::<ClearColor>()
+        .allow_resource::<AmbientLight>()
+        .allow_resource::<CubeMesh>()
+        .allow_resource::<MetalMaterials>()
+        .extract_resources()
         .build();
     let type_registry = world.resource::<AppTypeRegistry>();
-    let serialized_scene = scene.serialize_ron(type_registry).unwrap();
-    let filepath = String::from("save.ron");
+    let serialized_entities = entities.serialize_ron(type_registry).unwrap();
+    let entities_filepath = String::from("save.ron");
+    let serialized_resources = resources.serialize_ron(type_registry).unwrap();
+    let resources_filepath = String::from("resources.ron");
+
 
     #[cfg(not(target_arch = "wasm32"))]
     IoTaskPool::get()
         .spawn(async move {
             // Write the scene RON data to file
-            File::create(format!("assets/data/{filepath}"))
-                .and_then(|mut file| file.write(serialized_scene.as_bytes()))
+            File::create(format!("assets/data/{entities_filepath}"))
+                .and_then(|mut file| file.write(serialized_entities.as_bytes()))
+                .expect("Error while writing scene to file");
+        })
+        .detach();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    IoTaskPool::get()
+        .spawn(async move {
+            // Write the scene RON data to file
+            File::create(format!("assets/data/{resources_filepath}"))
+                .and_then(|mut file| file.write(serialized_resources.as_bytes()))
                 .expect("Error while writing scene to file");
         })
         .detach();
