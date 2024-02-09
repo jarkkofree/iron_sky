@@ -5,6 +5,50 @@
       components: {
         "bevy_transform::components::transform::Transform": (
           translation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+          ),
+          rotation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0,
+          ),
+          scale: (
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+          ),
+        ),
+      },
+    ),
+    2: (
+      components: {
+        "bevy_transform::components::transform::Transform": (
+          translation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+          ),
+          rotation: (
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+            w: 1.0,
+          ),
+          scale: (
+            x: 1.0,
+            y: 1.0,
+            z: 1.0,
+          ),
+        ),
+      },
+    ),
+    3: (
+      components: {
+        "bevy_transform::components::transform::Transform": (
+          translation: (
             x: 10.000002,
             y: 10.0,
             z: 10.0,
@@ -24,7 +68,7 @@
         "iron_sky::Camera": (),
       },
     ),
-    2: (
+    4: (
       components: {
         "bevy_transform::components::transform::Transform": (
           translation: (
@@ -47,7 +91,7 @@
         "iron_sky::Light": (),
       },
     ),
-    3: (
+    5: (
       components: {
         "bevy_transform::components::transform::Transform": (
           translation: (

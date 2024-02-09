@@ -34,6 +34,7 @@ fn main() {
         .register_type::<MetalMaterials>()
 
         .add_systems(OnEnter(AppState::Load), (
+            load_test,
             setup_test,
         ))
 
@@ -157,47 +158,47 @@ fn run_new_test(
     mut next_state: ResMut<NextState<AppState>>
 ) {
     // Camera
-    let extent = 10.0;
-    let camera_translation = Vec3::new(extent, extent, extent);
-    let camera_transform = Transform::from_translation(camera_translation)
-        .looking_at(Vec3::ZERO, Vec3::Y);
-    com.spawn((
-        Camera3dBundle {
-            transform: camera_transform,
-            ..default()
-        },
-        bevy_panorbit_camera::PanOrbitCamera::default(),
-        Camera,
-    ));
+    // let extent = 10.0;
+    // let camera_translation = Vec3::new(extent, extent, extent);
+    // let camera_transform = Transform::from_translation(camera_translation)
+    //     .looking_at(Vec3::ZERO, Vec3::Y);
+    // com.spawn((
+    //     Camera3dBundle {
+    //         transform: camera_transform,
+    //         ..default()
+    //     },
+    //     bevy_panorbit_camera::PanOrbitCamera::default(),
+    //     Camera,
+    // ));
 
-    // Light
-    let light_direction = Vec3::new(-extent*0.5, -extent*1.0, -extent*0.5);
-    let light_transform = Transform::IDENTITY
-        .looking_at(light_direction, Vec3::Y);
-    let directional_light = DirectionalLight {
-        illuminance: 10_000.0,
-        shadows_enabled: true,
-        ..default()
-    };
-    com.spawn((
-        DirectionalLightBundle {
-            transform: light_transform,
-            directional_light: directional_light,
-            ..default()
-        },
-        Light,
-    ));
+    // // Light
+    // let light_direction = Vec3::new(-extent*0.5, -extent*1.0, -extent*0.5);
+    // let light_transform = Transform::IDENTITY
+    //     .looking_at(light_direction, Vec3::Y);
+    // let directional_light = DirectionalLight {
+    //     illuminance: 10_000.0,
+    //     shadows_enabled: true,
+    //     ..default()
+    // };
+    // com.spawn((
+    //     DirectionalLightBundle {
+    //         transform: light_transform,
+    //         directional_light: directional_light,
+    //         ..default()
+    //     },
+    //     Light,
+    // ));
 
-    let aluminum_cube = PbrBundle {
-        mesh: cube_mesh.handle.clone(),
-        material: aluminum.handle.clone(),
-        ..Default::default()
-    };
+    // let aluminum_cube = PbrBundle {
+    //     mesh: cube_mesh.handle.clone(),
+    //     material: aluminum.handle.clone(),
+    //     ..Default::default()
+    // };
 
-    com.spawn((
-        aluminum_cube,
-        Cube,
-    ));
+    // com.spawn((
+    //     aluminum_cube,
+    //     Cube,
+    // ));
 
     next_state.set(AppState::Pause);
 }
@@ -225,7 +226,7 @@ fn save_test(
         .build();
     let type_registry = world.resource::<AppTypeRegistry>();
     let serialized_entities = entities.serialize_ron(type_registry).unwrap();
-    let entities_filepath = String::from("save.ron");
+    let entities_filepath = String::from("save.scn.ron");
     let serialized_resources = resources.serialize_ron(type_registry).unwrap();
     let resources_filepath = String::from("resources.ron");
 
@@ -249,4 +250,15 @@ fn save_test(
                 .expect("Error while writing scene to file");
         })
         .detach();
+}
+
+fn load_test(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let entities_filepath = String::from("save.scn.ron");
+    // "Spawning" a scene bundle creates a new entity and spawns new instances
+    // of the given scene's entities as children of that entity.
+    commands.spawn(DynamicSceneBundle {
+        // Scenes are loaded just like any other asset.
+        scene: asset_server.load(format!("data/{entities_filepath}")),
+        ..default()
+    });
 }
