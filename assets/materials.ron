@@ -1,0 +1,38 @@
+Metal(
+    metallic: 1.0,
+    perceptual_roughness: 0.5,
+    type: [
+        (
+            name: "silver",
+            color: "faf9f5",
+        ),
+        (
+            name: "aluminum",
+            color: "faf5f5",
+        ),
+        (
+            name: "platnum",
+            color: "d6d1c8",
+        ),
+        (
+            name: "iron",
+            color: "c0bdba",
+        ),
+        (
+            name: "titanium",
+            color: "cec8c2",
+        ),
+        (
+            name: "copper",
+            color: "fbd8b8",
+        ),
+        (
+            name: "gold",
+            color: "fedc9d",
+        ),
+        (
+            name: "brass",
+            color: "f4e4ad",
+        ),
+    ]
+)

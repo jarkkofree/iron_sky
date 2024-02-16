@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_panorbit_camera::PanOrbitCameraPlugin;
+use bevy_panorbit_camera;
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Hash, States)]
 pub enum AppState {
@@ -22,105 +22,67 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            PanOrbitCameraPlugin,
+            bevy_panorbit_camera::PanOrbitCameraPlugin,
         ))
 
         .add_state::<AppState>()
 
-        .register_type::<Camera>()
-        .register_type::<Light>()
-        .register_type::<Cube>()
-        .register_type::<CubeMesh>()
-        .register_type::<MetalMaterials>()
-
         .add_systems(OnEnter(AppState::Load), (
-            load_test,
-            setup_test,
+            insert_resources,
         ))
 
         .add_systems(OnEnter(AppState::Play), (
-            run_new_test,
-        ))
-
-        .add_systems(Update, (
-            save_test.run_if(in_state(AppState::Pause)),
+            spawn,
         ))
 
         .run();
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-struct Camera;
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-struct Light;
-
-
-#[derive(Resource, Reflect)]
-#[reflect(Resource)]
-struct CubeMesh {
-    mesh: Mesh,
-    positions: Vec<[f32; 3]>,
-    normals: Vec<[f32; 3]>,
-}
-
-impl Default for CubeMesh {
-    fn default() -> Self {
-        let cube = shape::Cube::new(1.0);
-        let mesh = Mesh::from(cube);
-        let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap();
-        let normals = mesh.attribute(Mesh::ATTRIBUTE_NORMAL).unwrap();
-        CubeMesh {
-            mesh: mesh.clone(),
-            positions: positions.as_float3().unwrap().to_vec(),
-            normals: normals.as_float3().unwrap().to_vec(),
-        }
+fn metal(name: &str) -> StandardMaterial {
+    let color = match name {
+        "silver" => Color::hex("faf9f5"),
+        "aluminum" => Color::hex("faf5f5"),
+        "platnum" => Color::hex("d6d1c8"),
+        "iron" => Color::hex("c0bdba"),
+        "titanium" => Color::hex("cec8c2"),
+        "copper" => Color::hex("fbd8b8"),
+        "gold" => Color::hex("fedc9d"),
+        "brass" => Color::hex("f4e4ad"),
+        _ => Ok(Color::WHITE),
+    };
+    StandardMaterial {
+        base_color: color.unwrap(),
+        metallic: 1.0,
+        perceptual_roughness: 0.5,
+        ..default()
     }
 }
 
+static METALS: [(&str, &str); 8] = [
+    ("silver","faf9f5"),
+    ("aluminum","faf5f5"),
+    ("platnum","d6d1c8"),
+    ("iron","c0bdba"),
+    ("titanium","cec8c2"),
+    ("copper","fbd8b8"),
+    ("gold","fedc9d"),
+    ("brass","f4e4ad"),
+];
+
 #[derive(Resource)]
-struct CubeMeshHandle {
-    handle: Handle<Mesh>,
+struct MetalHandles {
+    silver: Handle<StandardMaterial>,
+    aluminum: Handle<StandardMaterial>,
+    platnum: Handle<StandardMaterial>,
+    iron: Handle<StandardMaterial>,
+    titanium: Handle<StandardMaterial>,
+    copper: Handle<StandardMaterial>,
+    gold: Handle<StandardMaterial>,
+    brass: Handle<StandardMaterial>,
 }
 
-#[derive(Component, Reflect, Default)]
-#[reflect(Component)]
-struct Cube;
-
-
-
-#[derive(Resource)]
-struct AluminumHandle {
-    handle: Handle<StandardMaterial>,
-}
-
-#[derive(Resource, Reflect)]
-#[reflect(Resource)]
-struct MetalMaterials {
-    aluminum: StandardMaterial,
-}
-
-impl Default for MetalMaterials {
-    fn default() -> Self {
-        let metallic = StandardMaterial {
-            metallic: 1.0,
-            perceptual_roughness: 0.5,
-            ..default()
-        };
-        let aluminum_color = Color::hex("faf5f5").unwrap();
-        let aluminum_material = StandardMaterial {
-            base_color: aluminum_color,
-            ..metallic
-        };
-        MetalMaterials {
-            aluminum: aluminum_material,
-        }
-    }
-}
-
-fn setup_test (
+fn insert_resources (
     mut com: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -133,132 +95,103 @@ fn setup_test (
     });
 
     // Materials
-    let metals = MetalMaterials::default();
-    let aluminum_handle = materials.add(metals.aluminum.clone());
-    com.insert_resource(AluminumHandle {
-        handle: aluminum_handle.clone(),
-    });
-    com.insert_resource(metals);
-
-    // Meshes
-    let cube_mesh = CubeMesh::default();
-    let cube_mesh_handle = meshes.add(cube_mesh.mesh.clone());
-    com.insert_resource(cube_mesh);
-    com.insert_resource(CubeMeshHandle {
-        handle: cube_mesh_handle.clone(),
-    });
+    com.insert_resource(metal("silver"));
 
     next_state.set(AppState::Play);
 }
 
-fn run_new_test(
+fn spawn(
     mut com: Commands,
-    aluminum: Res<AluminumHandle>,
-    cube_mesh: Res<CubeMeshHandle>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     mut next_state: ResMut<NextState<AppState>>
 ) {
     // Camera
-    // let extent = 10.0;
-    // let camera_translation = Vec3::new(extent, extent, extent);
-    // let camera_transform = Transform::from_translation(camera_translation)
-    //     .looking_at(Vec3::ZERO, Vec3::Y);
-    // com.spawn((
-    //     Camera3dBundle {
-    //         transform: camera_transform,
-    //         ..default()
-    //     },
-    //     bevy_panorbit_camera::PanOrbitCamera::default(),
-    //     Camera,
-    // ));
+    let extent = 10.0;
+    let camera_translation = Vec3::new(extent, extent, extent);
+    let camera_transform = Transform::from_translation(camera_translation)
+        .looking_at(Vec3::ZERO, Vec3::Y);
+    com.spawn((
+        Camera3dBundle {
+            transform: camera_transform,
+            ..default()
+        },
+        bevy_panorbit_camera::PanOrbitCamera::default(),
+    ));
 
-    // // Light
-    // let light_direction = Vec3::new(-extent*0.5, -extent*1.0, -extent*0.5);
-    // let light_transform = Transform::IDENTITY
-    //     .looking_at(light_direction, Vec3::Y);
-    // let directional_light = DirectionalLight {
-    //     illuminance: 10_000.0,
-    //     shadows_enabled: true,
-    //     ..default()
-    // };
-    // com.spawn((
-    //     DirectionalLightBundle {
-    //         transform: light_transform,
-    //         directional_light: directional_light,
-    //         ..default()
-    //     },
-    //     Light,
-    // ));
+    // Light
+    let light_direction = Vec3::new(-extent*0.5, -extent*1.0, -extent*0.5);
+    let light_transform = Transform::IDENTITY
+        .looking_at(light_direction, Vec3::Y);
+    let directional_light = DirectionalLight {
+        illuminance: 10_000.0,
+        shadows_enabled: true,
+        ..default()
+    };
+    com.spawn((
+        DirectionalLightBundle {
+            transform: light_transform,
+            directional_light: directional_light,
+            ..default()
+        },
+    ));
 
-    // let aluminum_cube = PbrBundle {
-    //     mesh: cube_mesh.handle.clone(),
-    //     material: aluminum.handle.clone(),
-    //     ..Default::default()
-    // };
+    let silver = StandardMaterial {
+        base_color: Color::hex("faf9f5").unwrap(),
+        metallic: 1.0,
+        perceptual_roughness: 0.5,
+        ..default()
+    };
 
-    // com.spawn((
-    //     aluminum_cube,
-    //     Cube,
-    // ));
+    let aluminum_cube = PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube::new(1.0))),
+        material: materials.add(silver),
+        ..Default::default()
+    };
+
+    com.spawn((
+        aluminum_cube,
+    ));
 
     next_state.set(AppState::Pause);
 }
 
-use bevy::tasks::IoTaskPool;
-use std::{fs::File, io::Write};
-fn save_test(
-    world: &mut World,
-) {
-    let mut entity_query = world.query_filtered::<Entity, With<Transform>>();
+// use bevy::tasks::IoTaskPool;
+// use std::{fs::File, io::Write};
+// fn save_test(
+//     world: &mut World,
+// ) {
+//     let mut entity_query = world.query_filtered::<Entity, With<Transform>>();
 
-    let entities = DynamicSceneBuilder::from_world(world)
-        .allow::<Cube>()
-        .allow::<Camera>()
-        .allow::<Light>()
-        .allow::<Transform>()
-        .extract_entities(entity_query.iter(&world))
-        .build();
-    let resources = DynamicSceneBuilder::from_world(world)
-        .allow_resource::<ClearColor>()
-        .allow_resource::<AmbientLight>()
-        .allow_resource::<CubeMesh>()
-        .allow_resource::<MetalMaterials>()
-        .extract_resources()
-        .build();
-    let type_registry = world.resource::<AppTypeRegistry>();
-    let serialized_entities = entities.serialize_ron(type_registry).unwrap();
-    let entities_filepath = String::from("save.scn.ron");
-    let serialized_resources = resources.serialize_ron(type_registry).unwrap();
-    let resources_filepath = String::from("resources.ron");
+//     let scene = DynamicSceneBuilder::from_world(world)
+//         .allow::<Cube>()
+//         .allow::<PlayerView>()
+//         .allow::<Sunlight>()
+//         .extract_entities(entity_query.iter(&world))
+//         .build();
+//     let type_registry = world.resource::<AppTypeRegistry>();
+//     let serialized_scene = scene.serialize_ron(type_registry).unwrap();
+//     let scene_filepath = String::from("save.scn.ron");
 
 
-    #[cfg(not(target_arch = "wasm32"))]
-    IoTaskPool::get()
-        .spawn(async move {
-            // Write the scene RON data to file
-            File::create(format!("assets/data/{entities_filepath}"))
-                .and_then(|mut file| file.write(serialized_entities.as_bytes()))
-                .expect("Error while writing scene to file");
-        })
-        .detach();
+//     #[cfg(not(target_arch = "wasm32"))]
+//     IoTaskPool::get()
+//         .spawn(async move {
+//             // Write the scene RON data to file
+//             File::create(format!("assets/data/{scene_filepath}"))
+//                 .and_then(|mut file| file.write(serialized_scene.as_bytes()))
+//                 .expect("Error while writing scene to file");
+//         })
+//         .detach();
+// }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    IoTaskPool::get()
-        .spawn(async move {
-            // Write the scene RON data to file
-            File::create(format!("assets/data/{resources_filepath}"))
-                .and_then(|mut file| file.write(serialized_resources.as_bytes()))
-                .expect("Error while writing scene to file");
-        })
-        .detach();
-}
-
-fn load_test(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let entities_filepath = String::from("save.scn.ron");
-    // "Spawning" a scene bundle creates a new entity and spawns new instances
-    // of the given scene's entities as children of that entity.
-    commands.spawn(DynamicSceneBundle {
-        // Scenes are loaded just like any other asset.
-        scene: asset_server.load(format!("data/{entities_filepath}")),
-        ..default()
-    });
-}
+// fn load_test(mut commands: Commands, asset_server: Res<AssetServer>) {
+//     let entities_filepath = String::from("save.scn.ron");
+//     // "Spawning" a scene bundle creates a new entity and spawns new instances
+//     // of the given scene's entities as children of that entity.
+//     commands.spawn(DynamicSceneBundle {
+//         // Scenes are loaded just like any other asset.
+//         scene: asset_server.load(format!("data/{entities_filepath}")),
+//         ..default()
+//     });
+// }
