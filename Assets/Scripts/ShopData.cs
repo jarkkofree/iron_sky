@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 
-[CreateAssetMenu(fileName = "Shop", menuName = "ShopUI/Shop")]
-public class Shop : ScriptableObject
+[CreateAssetMenu(fileName = "ShopData", menuName = "ShopUI/Data/Shop")]
+public class ShopData : ScriptableObject
 {
     [SerializeField] private string _displayName;
     [SerializeField] private ShopInventory _inventory;
