@@ -9,3 +9,7 @@
 - NPC trader
 
 https://www.youtube.com/watch?v=gSfdCke3684
+
+add currency button
+player class -> player inventory class
+JSON to save load App.persistentdatapath
