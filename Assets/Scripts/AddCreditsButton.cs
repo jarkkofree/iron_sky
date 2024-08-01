@@ -2,20 +2,19 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ShowShopButton : MonoBehaviour
+public class AddCreditsButton : MonoBehaviour
 {
     private Button _button;
-    [SerializeField] private ShopData _shop;
 
-    public static Action<ShopData> OnClicked;
+    public static Action OnClicked;
 
     private void Awake()
     {
         _button = GetComponent<Button>();
-        _button.onClick.AddListener(()=>
+        _button.onClick.AddListener(() =>
         {
             _button.interactable = false;
-            OnClicked?.Invoke(_shop);
+            OnClicked?.Invoke();
         });
     }
 
