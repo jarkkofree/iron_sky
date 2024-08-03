@@ -13,7 +13,7 @@ public class AddCreditsButton : MonoBehaviour
         _button = GetComponent<Button>();
         _button.onClick.AddListener(() =>
         {
-            _button.interactable = false;
+            //_button.interactable = false;
             OnClicked?.Invoke();
         });
     }

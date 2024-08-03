@@ -11,8 +11,10 @@ namespace ShopUI.UI
         [SerializeField] private Transform _shopGrid;
         [SerializeField] private AssetReference _shopGridItem;
         [SerializeField] private TextMeshProUGUI _shopName;
+        [SerializeField] private TextMeshProUGUI _creditAccount;
 
-        [SerializeField] private Player _player;
+        [SerializeField] private PlayerData _player;
+        //[SerializeField] private Player _player;
 
         private void Awake()
         {
@@ -33,7 +35,9 @@ namespace ShopUI.UI
 
         private void AddCreditsButtonClicked()
         {
-            _player.AddCredits();
+            //_player.AddCredits();
+            _player.Credits += 1;
+            _creditAccount.text = $"Cr. {_player.Credits}";
         }
 
         private async void Show(ShopData shop)
