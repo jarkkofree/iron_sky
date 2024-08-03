@@ -12,19 +12,28 @@ namespace ShopUI.UI
         [SerializeField] private AssetReference _shopGridItem;
         [SerializeField] private TextMeshProUGUI _shopName;
 
+        [SerializeField] private Player _player;
+
         private void Awake()
         {
             ShowShopButton.OnClicked += ShowShopButtonClicked;
+            AddCreditsButton.OnClicked += AddCreditsButtonClicked;
         }
 
         private void OnDestroy()
         {
             ShowShopButton.OnClicked -= ShowShopButtonClicked;
+            AddCreditsButton.OnClicked -= AddCreditsButtonClicked;
         }
 
         private void ShowShopButtonClicked(ShopData shop)
         {
             Show(shop);
+        }
+
+        private void AddCreditsButtonClicked()
+        {
+            _player.AddCredits();
         }
 
         private async void Show(ShopData shop)
