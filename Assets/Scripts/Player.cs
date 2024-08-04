@@ -1,27 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private float _credits;
+    private static Player _player;
+    private PlayerInventory _inventory = new PlayerInventory();
 
-    public float Credits => _credits;
+    public static PlayerInventory Inventory => GetInventory();
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
-        _credits = 0;
+        if (_player == null)
+            _player = this;
     }
 
-    // Update is called once per frame
-    void Update()
+    private static PlayerInventory GetInventory()
     {
-        
-    }
+        if ( _player == null)
+            return new PlayerInventory();
 
-    public void AddCredits()
-    {
-        _credits += 1;
+        return _player._inventory;
     }
 }
